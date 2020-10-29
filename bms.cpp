@@ -7,6 +7,7 @@ BMS VUT FIT 2020 projekt - konvolucniho koder
 #include <iterator>
 #include <string.h>
 #include <bitset>
+#include <algorithm>
 
 using namespace std;
 
@@ -28,7 +29,7 @@ int main(int argc, char **argv)
 	//nacteni vstupu i s whitespace, pozor \n na konci	
 	istreambuf_iterator<char> begin(std::cin), end;
 	string vstup(begin, end);
-	cout << vstup;
+	//cout << vstup;
 	
 	if(strcmp(argv[1],"-e")==0)
 	{
@@ -43,7 +44,7 @@ int main(int argc, char **argv)
 			}
 			
 		}
-		cout<<"message:"<<message<<endl;	
+		//cout<<"message:"<<message<<endl;	
 		//funkce e s orezanym vstupem
 		if(message.length()!=0)
 		{
@@ -88,7 +89,7 @@ int main(int argc, char **argv)
 
 void encrypt(string message)
 {
-	cout<<"encrypt"<<endl;
+	//cout<<"encrypt"<<endl;
 	
 	//prevod message na bite stream
 	string bit_stream_chars("");
@@ -103,19 +104,83 @@ void encrypt(string message)
 	//cout<<bit_stream_chars<<endl;
 	
 	
+
+	int bit_stream[bit_stream_chars.length()+6];
+	//zarovnani s pametovymi bloky
+	//6x nula na konce zpravy
+	for(int i=0;i<6;i++)
+	{
+		bit_stream[i]=0;
+	}	
 	//dummy converze na pole intu
-	int bit_stream[bit_stream_chars.length()];
-	for(int i=0;i<bit_stream_chars.length();i++)
+	for(int i=6;i<bit_stream_chars.length()+6;i++)
 	{
 		//POZOR - neosetrene, vstup pouze ['0','1']
-		bit_stream[i]=bit_stream_chars[i]-48;
-		cout<<bit_stream[i];	
+		bit_stream[i]=bit_stream_chars[i-6]-48;
+		//cout<<bit_stream[i];	
+	}
+	
+
+	//reverse pole
+	int start=0,end=bit_stream_chars.length()+5;
+	while (start < end)
+    {
+        int temp = bit_stream[start]; 
+        bit_stream[start] = bit_stream[end];
+        bit_stream[end] = temp;
+        start++;
+        end--;
+    } 
+	//cout<<endl;
+	//debug vypis
+	/*
+	for(int i=0;i<bit_stream_chars.length()+6;i++)
+	{
+		cout<<bit_stream[i];
 	}
 	cout<<endl;
-	
+	cout<<endl;
+	*/
 	//konvolucni logika s postupnym vypisem
-
-
+	int jadro[6] = {0,0,0,0,0,0};
+	//debug vypis jadra
+	/*
+	cout<<"Jadro "<<"start"<<":";
+	for(int j=0;j<6;j++)
+	{
+		cout<<jadro[j];
+	}
+	*/
+	//cout<<endl;
+	
+	string vypis;
+	for(int i=0;i<bit_stream_chars.length()+5;i++)
+	{
+		//posun - shift jadra
+		for(int j=5;j>0;j--)
+		{
+			jadro[j] = jadro[j-1];
+		}
+		jadro[0]=bit_stream[i];
+		//debug
+		/*
+		cout<<"Jadro "<<i<<":";
+		for(int j=0;j<6;j++)
+		{
+			cout<<jadro[j];
+		}
+		cout<<endl;
+		*/
+		//vypocet 2x
+		
+		vypis+=to_string((jadro[0]+jadro[2]+jadro[3]+jadro[4])%2);
+		vypis+=to_string((jadro[0]+jadro[1]+jadro[3]+jadro[5])%2);
+	}
+	//reverse vypisu
+	reverse(vypis.begin(), vypis.end()); 
+	
+	//finalni vypis
+	cout<<vypis;
 	
 	exit(0);
 }
